@@ -4,8 +4,6 @@ from selenium.webdriver.common.by import By
 from time import sleep
 from tenacity import retry, stop_after_attempt, wait_fixed
 from selenium.common.exceptions import ElementClickInterceptedException
-from typing import bool
-
 from ..utils.logger import logger
 from ..utils.browser import create_driver, wait_for_element
 from ..utils.notifier import Notifier

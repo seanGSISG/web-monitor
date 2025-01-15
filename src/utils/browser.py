@@ -5,27 +5,36 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 import undetected_chromedriver as uc
-from rotating_free_proxies import RotatingFreeProxies
 from typing import Optional
+import requests
 
 from ..config import HEADLESS, USE_PROXIES, WAIT_TIMEOUT
 
+def get_free_proxy() -> str:
+    """Get a free proxy from a public proxy list."""
+    try:
+        response = requests.get('https://proxylist.geonode.com/api/proxy-list?filterUpTime=90&protocols=http%2Chttps&limit=1&page=1&sort_by=lastChecked&sort_type=desc&filterLastChecked=60')
+        data = response.json()
+        if data['data']:
+            proxy = data['data'][0]
+            return f"{proxy['protocol']}://{proxy['ip']}:{proxy['port']}"
+        return ''
+    except Exception:
+        return ''
 
-def create_driver(headless: bool = HEADLESS,
-                  use_proxy: bool = USE_PROXIES) -> WebDriver:
+def create_driver(headless: bool = HEADLESS, use_proxy: bool = USE_PROXIES) -> WebDriver:
     chrome_options = uc.ChromeOptions()
     if headless:
         chrome_options.add_argument('--headless')
 
     if use_proxy:
-        proxy_manager = RotatingFreeProxies()
-        proxy = proxy_manager.get_working_proxy().get('https')
-        chrome_options.add_argument(f'--proxy-server={proxy}')
+        proxy = get_free_proxy()
+        if proxy:
+            chrome_options.add_argument(f'--proxy-server={proxy}')
 
     driver = uc.Chrome(options=chrome_options)
     driver.implicitly_wait(10)
     return driver
-
 
 def wait_for_element(
         driver: WebDriver,
