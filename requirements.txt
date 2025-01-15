@@ -1,0 +1,13 @@
+web-monitor
+├── src
+│   ├── main.py
+│   ├── config.py
+│   ├── scraper
+│   │   └── monitor.py
+│   ├── utils
+│   │   ├── browser.py
+│   │   └── logger.py
+│   └── tests
+│       └── test_monitor.py
+├── requirements.txt
+└── README.md
