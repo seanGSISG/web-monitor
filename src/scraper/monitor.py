@@ -14,6 +14,7 @@ from ..config import (
     MAX_RETRIES, RETRY_DELAY, MAX_PROXY_FAILURES
 )
 
+
 class BestBuyMonitor:
     def __init__(self) -> None:
         self.session = requests.Session()
@@ -26,10 +27,12 @@ class BestBuyMonitor:
         try:
             response = self.session.get(BESTBUY_URL)
             soup = BeautifulSoup(response.content, 'html.parser')
-            
+
             # Check for "Add to Cart" button
-            add_to_cart_btn = soup.find('button', {'class': 'add-to-cart-button'})
-            return add_to_cart_btn is not None and 'disabled' not in str(add_to_cart_btn)
+            add_to_cart_btn = soup.find(
+                'button', {'class': 'add-to-cart-button'})
+            return add_to_cart_btn is not None and 'disabled' not in str(
+                add_to_cart_btn)
         except Exception as e:
             if "Proxy" in str(e):
                 self.proxy_failures += 1
@@ -43,20 +46,21 @@ class BestBuyMonitor:
         try:
             if not self.driver:
                 self.driver = create_driver()
-            
+
             self.driver.get("https://www.bestbuy.com/signin")
-            
+
             # Wait for and fill in login form
             email_field = wait_for_element(self.driver, By.ID, "fld-e")
             password_field = wait_for_element(self.driver, By.ID, "fld-p1")
-            
+
             email_field.send_keys(BB_USERNAME)
             password_field.send_keys(BB_PASSWORD)
-            
+
             # Submit login form
-            sign_in_btn = wait_for_element(self.driver, By.CSS_SELECTOR, "button[type='submit']")
+            sign_in_btn = wait_for_element(
+                self.driver, By.CSS_SELECTOR, "button[type='submit']")
             sign_in_btn.click()
-            
+
             # Wait for login to complete
             sleep(5)
             return True
@@ -66,9 +70,11 @@ class BestBuyMonitor:
 
     def handle_captcha(self) -> bool:
         try:
-            captcha_iframe = wait_for_element(self.driver, By.CSS_SELECTOR, "iframe[title*='reCAPTCHA']")
+            captcha_iframe = wait_for_element(
+                self.driver, By.CSS_SELECTOR, "iframe[title*='reCAPTCHA']")
             if captcha_iframe:
-                logger.warning("Captcha detected! Switching to non-proxy mode...")
+                logger.warning(
+                    "Captcha detected! Switching to non-proxy mode...")
                 self.cleanup()
                 self.driver = create_driver(use_proxy=False)
                 return True
@@ -80,38 +86,41 @@ class BestBuyMonitor:
         try:
             if not self.driver:
                 self.driver = create_driver()
-            
+
             # Navigate to product page
             self.driver.get(BESTBUY_URL)
-            
+
             # Click Add to Cart
-            add_to_cart = wait_for_element(self.driver, By.CSS_SELECTOR, "button.add-to-cart-button")
+            add_to_cart = wait_for_element(
+                self.driver, By.CSS_SELECTOR, "button.add-to-cart-button")
             add_to_cart.click()
-            
+
             # Go to cart
             self.driver.get("https://www.bestbuy.com/cart")
-            
+
             # Click Checkout
-            checkout_btn = wait_for_element(self.driver, By.CSS_SELECTOR, "button.checkout-button")
+            checkout_btn = wait_for_element(
+                self.driver, By.CSS_SELECTOR, "button.checkout-button")
             checkout_btn.click()
-            
+
             if self.handle_captcha():
                 return self.purchase_item()  # Retry purchase after handling captcha
-            
+
             # Wait for checkout page to load and complete purchase
-            place_order_btn = wait_for_element(self.driver, By.CSS_SELECTOR, "button.place-order-button")
+            place_order_btn = wait_for_element(
+                self.driver, By.CSS_SELECTOR, "button.place-order-button")
             place_order_btn.click()
-            
+
             # Additional error handling for common checkout issues
             if wait_for_element(
                 self.driver, By.CSS_SELECTOR, ".error-message"
             ):
                 raise Exception("Checkout error detected")
-            
+
             self.notifier.notify("Successfully purchased RTX 5090!")
             logger.info("Purchase completed successfully!")
             return True
-            
+
         except ElementClickInterceptedException:
             if self.handle_captcha():
                 return self.purchase_item()

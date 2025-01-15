@@ -10,21 +10,28 @@ from typing import Optional
 
 from ..config import HEADLESS, USE_PROXIES, WAIT_TIMEOUT
 
-def create_driver(headless: bool = HEADLESS, use_proxy: bool = USE_PROXIES) -> WebDriver:
+
+def create_driver(headless: bool = HEADLESS,
+                  use_proxy: bool = USE_PROXIES) -> WebDriver:
     chrome_options = uc.ChromeOptions()
     if headless:
         chrome_options.add_argument('--headless')
-    
+
     if use_proxy:
         proxy_manager = RotatingFreeProxies()
         proxy = proxy_manager.get_working_proxy().get('https')
         chrome_options.add_argument(f'--proxy-server={proxy}')
-    
+
     driver = uc.Chrome(options=chrome_options)
     driver.implicitly_wait(10)
     return driver
 
-def wait_for_element(driver: WebDriver, by: By, value: str, timeout: int = WAIT_TIMEOUT) -> Optional[WebElement]:
+
+def wait_for_element(
+        driver: WebDriver,
+        by: By,
+        value: str,
+        timeout: int = WAIT_TIMEOUT) -> Optional[WebElement]:
     try:
         element = WebDriverWait(driver, timeout).until(
             EC.presence_of_element_located((by, value))
