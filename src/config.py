@@ -5,7 +5,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Best Buy Configuration
-BESTBUY_URL = "https://www.bestbuy.com/site/nvidia-geforce-rtx-5090-32gb-gddr7-graphics-card-dark-gun-metal/6614151.p?skuId=6614151"
+BESTBUY_URL = (
+    "https://www.bestbuy.com/site/nvidia-geforce-rtx-5090-"
+    "32gb-gddr7-graphics-card-dark-gun-metal/"
+    "6614151.p?skuId=6614151"
+)
 CHECK_INTERVAL = 30  # seconds
 
 # Credentials
@@ -14,6 +18,7 @@ BB_PASSWORD = os.getenv('BB_PASSWORD')
 
 # Selenium Configuration
 HEADLESS = True
+WAIT_TIMEOUT = 10  # seconds
 
 # Notification Configuration
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
@@ -26,3 +31,4 @@ RETRY_DELAY = 5  # seconds
 # Proxy Configuration
 USE_PROXIES = True
 MAX_PROXY_FAILURES = 3
+PROXY_TIMEOUT = 10  # seconds

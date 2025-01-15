@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 from ..scraper.monitor import BestBuyMonitor
 
+
 class TestBestBuyMonitor(unittest.TestCase):
     def setUp(self):
         self.monitor = BestBuyMonitor()
@@ -22,6 +23,7 @@ class TestBestBuyMonitor(unittest.TestCase):
 
     def tearDown(self):
         self.monitor.cleanup()
+
 
 if __name__ == '__main__':
     unittest.main()

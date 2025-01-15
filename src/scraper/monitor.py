@@ -1,24 +1,28 @@
 import requests
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
 from time import sleep
 from tenacity import retry, stop_after_attempt, wait_fixed
 from selenium.common.exceptions import ElementClickInterceptedException
+from typing import Optional, bool
 
 from ..utils.logger import logger
 from ..utils.browser import create_driver, wait_for_element
-from ..config import BESTBUY_URL, BB_USERNAME, BB_PASSWORD
+from ..utils.notifier import Notifier
+from ..config import (
+    BESTBUY_URL, BB_USERNAME, BB_PASSWORD,
+    MAX_RETRIES, RETRY_DELAY, MAX_PROXY_FAILURES
+)
 
 class BestBuyMonitor:
-    def __init__(self):
+    def __init__(self) -> None:
         self.session = requests.Session()
         self.driver = None
         self.proxy_failures = 0
         self.notifier = Notifier()
 
     @retry(stop=stop_after_attempt(MAX_RETRIES), wait=wait_fixed(RETRY_DELAY))
-    def check_availability(self):
+    def check_availability(self) -> bool:
         try:
             response = self.session.get(BESTBUY_URL)
             soup = BeautifulSoup(response.content, 'html.parser')
@@ -35,7 +39,7 @@ class BestBuyMonitor:
             logger.error(f"Error checking availability: {str(e)}")
             raise
 
-    def login(self):
+    def login(self) -> bool:
         try:
             if not self.driver:
                 self.driver = create_driver()
@@ -60,7 +64,7 @@ class BestBuyMonitor:
             logger.error(f"Login failed: {str(e)}")
             return False
 
-    def handle_captcha(self):
+    def handle_captcha(self) -> bool:
         try:
             captcha_iframe = wait_for_element(self.driver, By.CSS_SELECTOR, "iframe[title*='reCAPTCHA']")
             if captcha_iframe:
@@ -72,7 +76,7 @@ class BestBuyMonitor:
         except Exception:
             return False
 
-    def purchase_item(self):
+    def purchase_item(self) -> bool:
         try:
             if not self.driver:
                 self.driver = create_driver()
@@ -99,7 +103,9 @@ class BestBuyMonitor:
             place_order_btn.click()
             
             # Additional error handling for common checkout issues
-            if wait_for_element(self.driver, By.CSS_SELECTOR, ".error-message"):
+            if wait_for_element(
+                self.driver, By.CSS_SELECTOR, ".error-message"
+            ):
                 raise Exception("Checkout error detected")
             
             self.notifier.notify("Successfully purchased RTX 5090!")
@@ -114,6 +120,6 @@ class BestBuyMonitor:
             logger.error(f"Purchase failed: {str(e)}")
             return False
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         if self.driver:
             self.driver.quit()

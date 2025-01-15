@@ -1,9 +1,12 @@
 import time
+from typing import NoReturn
+
 from scraper.monitor import BestBuyMonitor
 from utils.logger import logger
 from config import CHECK_INTERVAL
 
-def main():
+
+def main() -> NoReturn:
     monitor = BestBuyMonitor()
     consecutive_errors = 0
     logger.info("Starting Best Buy RTX 5090 Monitor")
@@ -13,13 +16,16 @@ def main():
             try:
                 if not monitor.driver:
                     if not monitor.login():
-                        logger.error("Failed to login. Retrying in 30 seconds...")
+                        logger.error("Failed to login. "
+                                   "Retrying in 30 seconds...")
                         time.sleep(30)
                         continue
 
                 if monitor.check_availability():
-                    logger.info("RTX 5090 is available! Attempting to purchase...")
-                    monitor.notifier.notify("RTX 5090 found! Attempting purchase...")
+                    logger.info(
+                        "RTX 5090 is available! Attempting to purchase...")
+                    monitor.notifier.notify(
+                        "RTX 5090 found! Attempting purchase...")
                     if monitor.purchase_item():
                         break
                     else:
