@@ -4,7 +4,7 @@ from selenium.webdriver.common.by import By
 from time import sleep
 from tenacity import retry, stop_after_attempt, wait_fixed
 from selenium.common.exceptions import ElementClickInterceptedException
-from typing import Optional, bool
+from typing import bool
 
 from ..utils.logger import logger
 from ..utils.browser import create_driver, wait_for_element
@@ -104,7 +104,8 @@ class BestBuyMonitor:
             checkout_btn.click()
 
             if self.handle_captcha():
-                return self.purchase_item()  # Retry purchase after handling captcha
+                # Retry purchase after handling captcha
+                return self.purchase_item()
 
             # Wait for checkout page to load and complete purchase
             place_order_btn = wait_for_element(
